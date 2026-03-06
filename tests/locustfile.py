@@ -20,10 +20,11 @@ import sys
 # Allow 'common' imports when running locust from repo root
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
+from locust import HttpUser, between, events, task
+
 from common.auth import AuthManager
 from common.config import auth as _auth_cfg
 from common.config import products, thresholds
-from locust import HttpUser, between, events, task
 
 logging.basicConfig(
     level=logging.INFO,

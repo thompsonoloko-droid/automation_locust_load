@@ -49,9 +49,15 @@ exclude = [".git", ".venv", "locust"]
 select = ["E", "F", "W", "I", "N", "UP", "B"]
 ignore = ["E501"]
 
+[tool.ruff.lint.isort]
+known-third-party = ["locust"]
+known-first-party = ["common"]
+
 [tool.isort]
 profile = "black"
 line_length = 88
+known_third_party = ["locust"]
+known_first_party = ["common"]
 skip_glob = ["locust/*", ".venv/*"]
 
 [tool.mypy]

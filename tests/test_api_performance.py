@@ -15,10 +15,11 @@ import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
+from locust import HttpUser, between, events, task
+
 from common.auth import AuthManager
 from common.config import auth as _auth_cfg
 from common.config import products, thresholds
-from locust import HttpUser, between, events, task
 
 logger = logging.getLogger(__name__)
 

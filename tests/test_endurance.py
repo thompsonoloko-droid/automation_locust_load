@@ -136,7 +136,6 @@ class EnduranceUser(HttpUser):
         """POST /entries — repeated catalogue poll checks for memory leaks."""
         with self.client.post(
             f"{target.api_host}/entries",
-            json={},
             catch_response=True,
             name="Soak: POST /entries",
         ) as r:

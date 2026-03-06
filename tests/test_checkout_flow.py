@@ -71,7 +71,6 @@ class CheckoutTaskSet(SequentialTaskSet):
         """Step 2: View product catalogue."""
         with self.client.post(
             f"{target.api_host}/entries",
-            json={},
             catch_response=True,
             name="Checkout: POST /entries",
         ) as r:

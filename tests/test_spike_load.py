@@ -113,7 +113,6 @@ class SpikeTestUser(HttpUser):
         """POST /entries — catalogue fetch."""
         with self.client.post(
             f"{target.api_host}/entries",
-            json={},
             catch_response=True,
             name="Spike: POST /entries",
         ) as r:

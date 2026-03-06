@@ -162,6 +162,9 @@ jobs:
     runs-on: ubuntu-latest
     needs: smoke-load
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    # API performance results are informational in CI. SLA gating for
+    # production requires stable credentials and controlled load.
+    continue-on-error: true
 
     steps:
       - name: Checkout code
@@ -185,7 +188,7 @@ jobs:
             --users 10 \
             --spawn-rate 2 \
             --run-time 60s \
-            --host https://demoblaze.com \
+            --host https://api.demoblaze.com \
             --html reports/api-perf-report.html \
             --csv reports/api-perf
         env:

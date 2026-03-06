@@ -87,7 +87,6 @@ class APIPerformanceUser(HttpUser):
         """POST /entries — catalogue load, highest frequency endpoint."""
         with self.client.post(
             "/entries",
-            json={},
             catch_response=True,
             name="API: POST /entries",
         ) as r:

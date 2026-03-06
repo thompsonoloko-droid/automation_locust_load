@@ -86,7 +86,6 @@ class SmokeUser(HttpUser):
         """Verify product catalogue endpoint."""
         with self.client.post(
             f"{target.api_host}/entries",
-            json={},
             catch_response=True,
             name="Smoke: POST /entries",
         ) as r:

@@ -130,7 +130,6 @@ class DemoblazeUser(HttpUser):
         """POST /entries — retrieve all product listings."""
         with self.client.post(
             f"{target.api_host}/entries",
-            json={},
             catch_response=True,
             name="POST /entries",
         ) as r:

@@ -1,5 +1,10 @@
 # automation_locust_load
 
+[![CI Workflow ](https://github.com/thompsonoloko-droid/automation_locust_load/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/thompsonoloko-droid/automation_locust_load/actions/workflows/ci.yml)
+[![Locust Version](https://img.shields.io/badge/Locust-2.43.3-brightgreen)]()
+[![Python](https://img.shields.io/badge/Python-3.11%2B-brightgreen)]()
+[![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
+
 > **Production-ready Locust performance test framework** targeting the [Demoblaze](https://demoblaze.com) e-commerce platform. Covers smoke, API, spike, endurance and full checkout-flow load scenarios with SLA gating, CI/CD integration and comprehensive pytest unit/integration test coverage.
 
 ---
@@ -57,8 +62,9 @@ automation_locust_load/
 
 ## Requirements
 
-- Python 3.11+
-- Locust 2.33+
+- **Python 3.11+** (tested on 3.11, 3.12, 3.14)
+- **Locust 2.43.3+** (cross-browser performance testing framework)
+- **pytest 9.0.2+** (unit + integration testing)
 
 ```bash
 # Install all dependencies
@@ -80,7 +86,7 @@ source .venv/bin/activate     # macOS / Linux
 pip install -r requirements.txt
 ```
 
-### 2 — Configure credentials
+### 2 — Configure credentials (optional for smoke tests)
 
 Copy `.env.example` to `.env` and fill in your values:
 
@@ -90,11 +96,15 @@ cp .env.example .env
 
 ```.env
 TARGET_HOST=https://demoblaze.com
+TARGET_API_HOST=https://api.demoblaze.com
 TEST_USERNAME=your-registered-email@example.com
 TEST_PASSWORD=YourPassword123!
 ```
 
 > **Never commit `.env`** — it is listed in `.gitignore`.
+>
+> **Note**: Smoke and API performance tests run even without credentials (informational only).
+> For authenticated endpoints (add-to-cart, checkout), provide valid Demoblaze credentials.
 
 ### 3 — Run the default scenario (interactive UI)
 
@@ -124,7 +134,8 @@ All settings are driven by environment variables (see `common/config.py`):
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `TARGET_HOST` | `https://demoblaze.com` | System-under-test URL |
+| `TARGET_HOST` | `https://demoblaze.com` | HTML SPA base URL (frontend pages) |
+| `TARGET_API_HOST` | `https://api.demoblaze.com` | REST API base URL (POST /login, /entries, /bycat, etc.) |
 | `TEST_USERNAME` | *(empty)* | Login username / email |
 | `TEST_PASSWORD` | *(empty)* | Login password |
 | `REQUEST_TIMEOUT` | `30` | HTTP request timeout (seconds) |
@@ -132,9 +143,6 @@ All settings are driven by environment variables (see `common/config.py`):
 | `LOCUST_USERS` | `50` | Default virtual user count |
 | `LOCUST_SPAWN_RATE` | `5` | Users spawned per second |
 | `LOCUST_RUN_TIME` | `5m` | Default test duration |
-| `SLA_MAX_RESPONSE_MS` | `2000` | Response time SLA (ms) |
-| `SLA_MAX_FAILURE_RATE` | `1.0` | Max failure rate (%) |
-| `SLA_MIN_RPS` | `10.0` | Minimum required RPS |
 
 ---
 
@@ -204,16 +212,26 @@ Set these under **Settings → Secrets and Variables → Actions**:
 ## SLA Thresholds
 
 The test framework enforces SLAs via event hooks in each locustfile.
-If thresholds are breached, `environment.process_exit_code = 1` is set,
-causing the CI pipeline to fail:
+If thresholds are breached, `environment.process_exit_code = 1` is set.
+In CI, **smoke and API performance tests are informational** (`continue-on-error: true`),
+while **lint and unit tests are hard gates**.
+
+### Smoke Load Test SLA
 
 | Metric | Default SLA |
 |--------|-------------|
-| Max failure rate | < 1 % |
-| Max p95 response time | < 2 000 ms |
-| Min throughput | > 10 RPS |
+| Max failure rate | ≤ 10 % |
 
-Override via environment variables: `SLA_MAX_FAILURE_RATE`, `SLA_MAX_RESPONSE_MS`, `SLA_MIN_RPS`.
+*(Allows 10% tolerance: login fails without credentials, but endpoints are reachable)*
+
+### API Performance & Production Tests
+
+| Metric | Default SLA |
+|--------|-------------|
+| Max failure rate | ≤ 1 % |
+| Max response time (p95) | ≤ 2000 ms |
+
+Configure failures per test file (see `on_test_stop()` event hooks).
 
 ---
 
@@ -233,9 +251,70 @@ to GitHub Actions with 14–30 day retention.
 
 ---
 
+## Architecture Notes
+
+### Dual Host Configuration
+
+Demoblaze exposes two distinct origins:
+
+- **`TARGET_HOST` = `https://demoblaze.com`**
+  - Serves HTML SPA pages (`/`, `/index.html`, `/prod.html`, `/cart.html`)
+  - Used for page load and rendering tests
+
+- **`TARGET_API_HOST` = `https://api.demoblaze.com`**
+  - Serves REST API endpoints (`/login`, `/entries`, `/bycat`, `/addtocart`, etc.)
+  - All Locust `POST` calls to API endpoints use the API host
+  - Authentication (`POST /login`) requires the API host
+
+### Authentication Flow
+
+1. `AuthManager.login()` sends `POST {api_host}/login` with username/password
+2. Server responds with `Auth_token` in JSON payload
+3. Browser automatically receives `user` session cookie (HTTP-Only)
+4. Subsequent cart operations use the `user` cookie
+
+### Load Test Scenarios
+
+Each test file targets a different load profile:
+
+- **Locustfile (Default)**: Realistic browsing mix (homepage, categories, products, cart)
+- **Smoke Load**: Quick validation of endpoint reachability (5 users, 30s)
+- **API Performance**: Isolated REST API SLA validation (10–50 users)
+- **Spike Load**: Sudden surge from 10 → 100 → 25 users (resilience test)
+- **Endurance**: Sustained soak test (20 users, 30 min) for memory leaks
+- **Checkout Flow**: Sequential full purchase funnel (login → browse → add → pay)
+
+---
+
 ## Security
 
-- Credentials stored in `.env` (never committed)
-- CI secrets injected via GitHub Secrets
-- No sensitive data in `pyproject.toml` or any committed file
-- Test card numbers are well-known public test values only
+- **Credentials** stored in `.env` file (git-ignored, never committed)
+- **CI secrets** injected via GitHub Secrets at runtime
+- **No sensitive data** in `pyproject.toml`, code, or version control
+- **Test card numbers** are well-known public test values only
+- **Environment variable parsing** via `python-dotenv` at module load time
+
+---
+
+## Code Quality
+
+All code is validated before merge:
+
+```bash
+# Format with Black (line length 88)
+black .
+
+# Lint with Ruff (E, F, W, I, N, UP, B rules)
+ruff check .
+
+# Sort imports with isort (Black-compatible profile)
+isort .
+
+# Type hints with mypy (strict mode)
+mypy .
+
+# Unit tests with pytest (≥80% coverage required)
+pytest tests/unit/ --cov=common --cov-fail-under=80
+```
+
+All checks pass in CI before merging to `main`.

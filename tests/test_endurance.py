@@ -36,12 +36,30 @@ logger = logging.getLogger(__name__)
 class EnduranceLoadShape(LoadTestShape):
     """
     Gradual ramp-up then sustained plateau (default: 30 min total).
+    
+    Memory leak detection strategy:
+    - Warm-up (0–5 min): Allow JVM/Python to stabilize, class loading
+    - Sustained (5–25 min): **Primary detection window** — observe metrics
+      - Track: RSS memory, HTTP/DB connections
+      - Watch for: Monotonic growth (memory leak signature)
+      - Expected: Flat or bounded oscillation
+    - Ramp-down (25–30 min): Graceful shutdown, connection cleanup
+    
+    Metrics collected by Locust:
+    - Response time percentiles (p50, p95, p99): Should be stable ±20%
+    - Failure rate: Must stay <1% (consistent throughput)
+    - Request/sec: Validate sustained throughput (not degrading)
+    
+    Common leak patterns:
+    - Memory RSS growth >200MB over 20min = potential leak
+    - Response time drift >50% = connection pool exhaustion
+    - Failure rate creep = resource exhaustion
 
-    Phase        | Duration | Users | Spawn Rate
-    -------------|----------|-------|----------
-    Ramp-up      | 0–5 min  |  20   |  2/s
-    Sustained    | 5–25 min |  20   |  2/s
-    Ramp-down    | 25–30min |   0   |  5/s
+    Phase        | Duration | Users | Spawn Rate | Purpose
+    -------------|----------|-------|-----------|----------
+    Ramp-up      | 0–5 min  |  20   |  2/s      | Stability & class loading
+    Sustained    | 5–25 min |  20   |  2/s      | **Leak detection window**
+    Ramp-down    | 25–30min |   0   |  5/s      | Cleanup & shutdown
     """
 
     # Override via CLI --run-time for different soak durations
@@ -60,17 +78,34 @@ class EnduranceLoadShape(LoadTestShape):
 
 
 # ---------------------------------------------------------------------------
-# Event hooks — periodic SLA monitoring
+# Event hooks — periodic SLA monitoring during sustained load
+# ---------------------------------------------------------------------------
+# These hooks track aggregate metrics throughout the soak test.
+# Designed to detect resource exhaustion, memory leaks, and response degradation.
 # ---------------------------------------------------------------------------
 
 
 @events.test_start.add_listener
 def on_test_start(environment, **kwargs) -> None:  # type: ignore[type-arg]
+    """Log soak start; baseline metrics captured by Locust automatically."""
     logger.info("Endurance / soak test starting.")
 
 
 @events.test_stop.add_listener
 def on_test_stop(environment, **kwargs) -> None:  # type: ignore[type-arg]
+    """
+    Soak test complete: report aggregate metrics and final SLA gate.
+    
+    Metrics interpretation:
+    - p95, p99: Response time percentiles — should track flatly over 20min
+    - failures: Count of HTTP errors — must stay <threshold
+    - fail_ratio: (failures / total_requests) * 100 — gate on <1%
+    
+    Common findings:
+    - p99 creep from 100ms → 500ms: Connection pool exhaustion
+    - Failure rate climb: Resource leak or cascade failure
+    - Stable metrics: System is resilient to sustained load
+    """
     stats = environment.stats.total
     logger.info(
         "Soak test finished — total_requests=%d  failures=%d  "

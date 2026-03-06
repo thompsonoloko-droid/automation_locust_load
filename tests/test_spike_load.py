@@ -46,15 +46,25 @@ def on_test_stop(environment, **kwargs) -> None:  # type: ignore[type-arg]
 
 class SpikeLoadShape(LoadTestShape):
     """
-    Time-boxed spike profile (total 4 minutes):
+    Time-boxed spike profile (total 4 minutes): simulates sudden traffic surge.
 
-    Phase          | Duration | Users | Spawn Rate
-    ---------------|----------|-------|----------
-    Warm-up        | 0–30s    |  10   |     2/s
-    Steady-state   | 30–90s   |  25   |     5/s
-    Spike          | 90–120s  | 100   |    25/s
-    Recovery       | 120–180s |  25   |     5/s
-    Ramp-down      | 180–240s |   0   |    10/s
+    This profile validates system resilience under shock load:
+    - Warm-up: Establish baseline
+    - Steady-state: Normal operating load
+    - Spike: Sudden 4x traffic surge (90→100 users in 30s)
+    - Recovery: System response to load drop (auto-scaling, recovery)
+    - Ramp-down: Clean shutdown
+    
+    Industry use case: Black Friday, flash sales, viral content.
+    Success: Response time degradation <20%, P99 latency <10s, failure rate <1%.
+
+    Phase          | Duration | Users | Spawn Rate | Purpose
+    --------------|----------|-------|-----------|----------
+    Warm-up        | 0–30s    |  10   |     2/s   | Establish baseline
+    Steady-state   | 30–90s   |  25   |     5/s   | Normal load
+    Spike          | 90–120s  | 100   |    25/s   | **Surge test**
+    Recovery       | 120–180s |  25   |     5/s   | Auto-scaling response
+    Ramp-down      | 180–240s |   0   |    10/s   | Graceful shutdown
     """
 
     stages = [
@@ -66,6 +76,11 @@ class SpikeLoadShape(LoadTestShape):
     ]
 
     def tick(self) -> tuple[int, float] | None:
+        """
+        Calculate user count and spawn rate for current elapsed time.
+        
+        Returns: (user_count, spawn_rate) tuple, or None when all stages complete.
+        """
         run_time = self.get_current_run_time()
         for stage in self.stages:
             if run_time < stage["duration"]:

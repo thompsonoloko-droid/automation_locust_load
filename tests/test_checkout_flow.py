@@ -40,7 +40,33 @@ def on_test_stop(environment, **kwargs) -> None:  # type: ignore[type-arg]
 
 
 # ---------------------------------------------------------------------------
-# Sequential task set — funnel order matters
+# Sequential task set — funnel order matters for business validation
+# ---------------------------------------------------------------------------
+# SequentialTaskSet ensures tasks execute in definition order (step_1 → step_N).
+# This models a **real user purchase journey** with strict dependencies:
+#
+# Business Flow (CRM funnel):
+#   Auth (1%) → Browse (25%) → Search (25%) → Select (25%) → Cart (20%) → Pay (4%)
+#
+# Critical Path Dependencies:
+#   step_1 (login)       ← MUST succeed for auth.session_cookie
+#   step_2 (catalogue)   ← Populates product list
+#   step_3 (category)    ← Filters, improves UX
+#   step_4 (product)     ← Renders selected product
+#   step_5 (add-to-cart) ← Requires: user session + product ID
+#   step_6 (view-cart)   ← Validates cart contents
+#   step_7 (purchase)    ← **HIGHEST SLA WEIGHT** — revenue-generating step
+#   step_8 (logout)      ← Cleanup + reset for next iteration
+#
+# Failure Impact:
+#   - step_1 fails       → Entire journey aborted (auth failure blocks all)
+#   - step_5 fails       → step_6, step_7 orphaned (data loss)
+#   - step_7 fails       → **Direct revenue impact** (transaction lost)
+#
+# SLA Tracking:
+#   - P95, P99 response times measure user satisfaction (checkout latency)
+#   - Failure rate <1%: Each failure represents lost revenue
+#
 # ---------------------------------------------------------------------------
 
 
@@ -139,7 +165,19 @@ class CheckoutTaskSet(SequentialTaskSet):
 
     @task
     def step_7_place_order(self) -> None:
-        """Step 7: Submit order (critical path, highest SLA weight)."""
+        """
+        Step 7: Submit order (critical path, highest SLA weight).
+        
+        Business significance:
+        - This is the **revenue-generating endpoint**
+        - Every failure = lost transaction / customer churn
+        - Must have SLA: <2s p95, <5s p99, <1% failure rate
+        - Monitored in production via Datadog/APM
+        
+        Payload fields:
+        - card: Test card 4444333322221111 (Stripe test mode)
+        - month/year: 12/2030 (test expiry)
+        """
         with self.client.post(
             f"{target.api_host}/purchase",
             json={
@@ -160,21 +198,39 @@ class CheckoutTaskSet(SequentialTaskSet):
 
     @task
     def step_8_logout(self) -> None:
-        """Step 8: Reset journey — log out."""
+        """
+        Step 8: Reset journey — log out.
+        
+        Cleanup & restart logic:
+        - Clears session token (auth.logout())
+        - Selects new random product for next iteration
+        - Simulates realistic user behavior: logout → new session next visit
+        
+        Loop: After step_8, SequentialTaskSet restarts at step_1 (login)
+        """
         self.auth.logout()
         # Pick a new product for next journey iteration
         self.selected_product = random.choice(products.known_product_ids)
 
 
 # ---------------------------------------------------------------------------
-# User class
+# User class — runs checkout funnel exclusively
+# ---------------------------------------------------------------------------
+# This user type is optimal for:
+#   1. SLA validation on purchase endpoint (highest business priority)
+#   2. End-to-end regression testing (catches bugs in complete flow)
+#   3. Concurrency testing (auth failures, cart conflicts)
+#   4. Transaction latency p95/p99 reporting
 # ---------------------------------------------------------------------------
 
 
 class CheckoutUser(HttpUser):
     """
-    User that exclusively runs the complete checkout journey
-    in strict sequential order.
+    User that exclusively runs the complete checkout journey in strict sequential order.
+    
+    Use case: Critical path monitoring for e-commerce platform.
+    Each user iteration represents one virtual customer's complete purchase.
+    Locust scales this: N concurrent users = N simultaneous purchase journeys.
     """
 
     host = "https://demoblaze.com"

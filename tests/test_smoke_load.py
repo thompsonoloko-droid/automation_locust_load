@@ -4,8 +4,14 @@ Smoke Load Test — quick sanity check at low concurrency.
 Purpose: Verify that all key endpoints are reachable and return HTTP 200
 before triggering heavier load scenarios. Run this first in CI pipelines.
 
+Characteristics:
+    - 5 virtual users (low concurrency)
+    - 30-second runtime
+    - 10% failure rate tolerance (allows failed login without credentials)
+    - Hits: homepage, product pages, /entries (catalogue), /bycat (filters)
+
 Run:
-    locust -f tests/test_smoke_load.py --headless -u 5 -r 1 --run-time 1m
+    locust -f tests/test_smoke_load.py --headless -u 5 -r 1 --run-time 30s
 """
 
 import logging

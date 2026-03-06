@@ -45,6 +45,16 @@ def on_test_start(environment, **kwargs) -> None:  # type: ignore[type-arg]
 
 @events.test_stop.add_listener
 def on_test_stop(environment, **kwargs) -> None:  # type: ignore[type-arg]
+    """
+    SLA gate: exits with code 1 if failure rate exceeds the configured threshold.
+    
+    This hook allows CI/CD pipelines to gate on performance metrics:
+    - If fail_ratio * 100 > max_failure_rate_pct, exit_code = 1 (failure)
+    - Otherwise, exit_code = 0 (success)
+    
+    Max failure rate is loaded from config (default: 1%), can be overridden
+    via environment variable SLA_MAX_FAILURE_RATE.
+    """
     stats = environment.stats.total
     logger.info(
         "Load test finished — requests=%d  failures=%d  avg_resp=%.0fms",
@@ -92,6 +102,18 @@ class DemoblazeUser(HttpUser):
             response.failure(f"HTTP {response.status_code}")
         else:
             response.success()
+
+    # ========================================================================
+    # Task Weight Distribution (Realistic User Behavior)
+    # ========================================================================
+    # Weight ratios simulate real user journeys:
+    # - Homepage (5): 33% of actions — users browse, abandon, return
+    # - Category browse (4): 27% — search by category
+    # - View product (3): 20% — inspect items
+    # - Add to cart (2): 13% — commit to purchase intent
+    # - Checkout (1): 7% — complete purchase (baseline)
+    # Total weight = 15; distribution sums to realistic SPA usage patterns.
+    # ========================================================================
 
     @task(5)
     def view_homepage(self) -> None:

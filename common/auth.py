@@ -3,6 +3,19 @@ Authentication helpers for the Locust performance test framework.
 
 Provides a reusable :class:`AuthManager` that handles login, token extraction,
 and session-cookie management for Demoblaze-style authentication flows.
+
+Architecture:
+    1. Login POSTs to api.demoblaze.com/login with username/password
+    2. Server returns Auth_token in JSON response body
+    3. Browser automatically receives 'user' cookie (HTTP-Only, implicit)
+    4. Subsequent requests (cart, checkout) use the 'user' cookie
+
+Example:
+    >>> from common.auth import AuthManager
+    >>> auth = AuthManager(user, username="test@example.com", password="Secret1!")
+    >>> auth.login()  # True if successful
+    >>> auth.session_cookie  # 'user' cookie value for subsequent requests
+    >>> auth.logout()  # Clears all auth state
 """
 
 import json

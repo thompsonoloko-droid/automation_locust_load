@@ -4,8 +4,19 @@ API Performance Test — Demoblaze REST Endpoints.
 Focuses specifically on the backend API layer, bypassing SPA rendering.
 Tests individual endpoints under load with strict SLA assertions.
 
+Characteristics:
+    - 10–20 virtual users (moderate concurrency)
+    - 60-second runtime
+    - Pure HTTP/JSON (no browser rendering)
+    - Targets api.demoblaze.com/login, /entries, /bycat, /getitem, /addtocart, /viewcart, /deletecart
+    - 1% max failure rate SLA
+    - Measures backend response times in isolation
+
+This isolates API-level response times from front-end asset loading,
+which is the industry-standard approach for backend SLA validation.
+
 Run:
-    locust -f tests/test_api_performance.py --headless -u 20 -r 2 --run-time 2m
+    locust -f tests/test_api_performance.py --headless -u 20 -r 2 --run-time 60s
 """
 
 import logging

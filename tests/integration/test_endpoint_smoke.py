@@ -134,7 +134,7 @@ class TestResponsePayloads:
         data = response.json()
         # Demoblaze wraps items in 'Items' key
         assert "Items" in data or isinstance(
-            data, (list, dict)
+            data, list | dict
         ), "Entries response must be parseable JSON"
 
     def test_bycat_returns_json(self, http_session: requests.Session) -> None:

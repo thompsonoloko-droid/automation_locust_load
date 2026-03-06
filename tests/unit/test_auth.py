@@ -6,9 +6,7 @@ without making real network requests.
 """
 
 import json
-from unittest.mock import MagicMock, patch
-
-import pytest
+from unittest.mock import MagicMock
 
 # ---------------------------------------------------------------------------
 # Helpers to build mock context-manager responses
@@ -93,9 +91,7 @@ class TestAuthManagerLogin:
 
         assert result is False
 
-    def test_network_exception_returns_false(
-        self, mock_http_user: MagicMock
-    ) -> None:
+    def test_network_exception_returns_false(self, mock_http_user: MagicMock) -> None:
         """login() must return False (not raise) on a connection error."""
         from common.auth import AuthManager
 

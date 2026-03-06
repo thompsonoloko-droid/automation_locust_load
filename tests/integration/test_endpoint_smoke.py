@@ -48,9 +48,7 @@ class TestEndpointAvailability:
     def test_homepage_returns_200(self, http_session: requests.Session) -> None:
         """GET / must return HTTP 200."""
         response = http_session.get(BASE_URL + "/", timeout=TIMEOUT)
-        assert response.status_code == 200, (
-            f"Homepage returned {response.status_code}"
-        )
+        assert response.status_code == 200, f"Homepage returned {response.status_code}"
 
     def test_product_page_returns_200(self, http_session: requests.Session) -> None:
         """GET /prod.html?idp_=1 must return HTTP 200."""
@@ -64,13 +62,9 @@ class TestEndpointAvailability:
         response = http_session.get(BASE_URL + "/cart.html", timeout=TIMEOUT)
         assert response.status_code == 200
 
-    def test_entries_endpoint_returns_200(
-        self, http_session: requests.Session
-    ) -> None:
+    def test_entries_endpoint_returns_200(self, http_session: requests.Session) -> None:
         """POST /entries must return HTTP 200 with product data."""
-        response = http_session.post(
-            BASE_URL + "/entries", json={}, timeout=TIMEOUT
-        )
+        response = http_session.post(BASE_URL + "/entries", json={}, timeout=TIMEOUT)
         assert response.status_code == 200
 
     def test_bycat_phone_returns_200(self, http_session: requests.Session) -> None:
@@ -80,18 +74,14 @@ class TestEndpointAvailability:
         )
         assert response.status_code == 200
 
-    def test_bycat_notebook_returns_200(
-        self, http_session: requests.Session
-    ) -> None:
+    def test_bycat_notebook_returns_200(self, http_session: requests.Session) -> None:
         """POST /bycat with cat=notebook must return HTTP 200."""
         response = http_session.post(
             BASE_URL + "/bycat", json={"cat": "notebook"}, timeout=TIMEOUT
         )
         assert response.status_code == 200
 
-    def test_bycat_monitor_returns_200(
-        self, http_session: requests.Session
-    ) -> None:
+    def test_bycat_monitor_returns_200(self, http_session: requests.Session) -> None:
         """POST /bycat with cat=monitor must return HTTP 200."""
         response = http_session.post(
             BASE_URL + "/bycat", json={"cat": "monitor"}, timeout=TIMEOUT
@@ -111,9 +101,7 @@ class TestAuthEndpoint:
             "username": "nonexistent_user_xyz@example.com",
             "password": "definitely_wrong_password_xyz",
         }
-        response = http_session.post(
-            BASE_URL + "/login", json=payload, timeout=TIMEOUT
-        )
+        response = http_session.post(BASE_URL + "/login", json=payload, timeout=TIMEOUT)
         # API returns 200 with an error message — should NOT contain a token
         assert response.status_code == 200
         assert "Auth_token" not in response.text
@@ -123,15 +111,14 @@ class TestAuthEndpoint:
     ) -> None:
         """POST /login response time must be under 5 seconds."""
         from common.config import thresholds
+
         payload = {"username": "test", "password": "test"}
-        response = http_session.post(
-            BASE_URL + "/login", json=payload, timeout=TIMEOUT
-        )
+        response = http_session.post(BASE_URL + "/login", json=payload, timeout=TIMEOUT)
         response_ms = response.elapsed.total_seconds() * 1000
         # Use 5× SLA threshold for integration smoke (network variance)
-        assert response_ms < thresholds.max_response_time_ms * 5, (
-            f"Login took {response_ms:.0f}ms — SLA breach"
-        )
+        assert (
+            response_ms < thresholds.max_response_time_ms * 5
+        ), f"Login took {response_ms:.0f}ms — SLA breach"
 
 
 @pytest.mark.integration
@@ -142,15 +129,13 @@ class TestResponsePayloads:
         self, http_session: requests.Session
     ) -> None:
         """POST /entries payload must include an 'Items' or similar key."""
-        response = http_session.post(
-            BASE_URL + "/entries", json={}, timeout=TIMEOUT
-        )
+        response = http_session.post(BASE_URL + "/entries", json={}, timeout=TIMEOUT)
         assert response.status_code == 200
         data = response.json()
         # Demoblaze wraps items in 'Items' key
-        assert "Items" in data or isinstance(data, (list, dict)), (
-            "Entries response must be parseable JSON"
-        )
+        assert "Items" in data or isinstance(
+            data, (list, dict)
+        ), "Entries response must be parseable JSON"
 
     def test_bycat_returns_json(self, http_session: requests.Session) -> None:
         """POST /bycat must return valid JSON."""

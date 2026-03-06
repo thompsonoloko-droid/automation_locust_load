@@ -15,11 +15,10 @@ import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
-from locust import HttpUser, between, events, task
-
 from common.auth import AuthManager
 from common.config import auth as _auth_cfg
 from common.config import products, thresholds
+from locust import HttpUser, between, events, task
 
 logger = logging.getLogger(__name__)
 
@@ -28,9 +27,7 @@ logger = logging.getLogger(__name__)
 def on_test_stop(environment, **kwargs) -> None:  # type: ignore[type-arg]
     stats = environment.stats.total
     if stats.fail_ratio * 100 > thresholds.max_failure_rate_pct:
-        logger.error(
-            "API SLA BREACH: failure rate %.2f%%", stats.fail_ratio * 100
-        )
+        logger.error("API SLA BREACH: failure rate %.2f%%", stats.fail_ratio * 100)
         environment.process_exit_code = 1
 
 

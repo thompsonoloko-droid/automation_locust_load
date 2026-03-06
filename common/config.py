@@ -33,12 +33,8 @@ class TargetConfig:
 class AuthConfig:
     """Credentials loaded from environment variables."""
 
-    username: str = field(
-        default_factory=lambda: os.getenv("TEST_USERNAME", "")
-    )
-    password: str = field(
-        default_factory=lambda: os.getenv("TEST_PASSWORD", "")
-    )
+    username: str = field(default_factory=lambda: os.getenv("TEST_USERNAME", ""))
+    password: str = field(default_factory=lambda: os.getenv("TEST_PASSWORD", ""))
 
     def is_configured(self) -> bool:
         """Return True when both username and password are set."""
@@ -49,15 +45,11 @@ class AuthConfig:
 class LoadConfig:
     """Default load-shape parameters (overridable via Locust CLI flags)."""
 
-    users: int = field(
-        default_factory=lambda: int(os.getenv("LOCUST_USERS", "50"))
-    )
+    users: int = field(default_factory=lambda: int(os.getenv("LOCUST_USERS", "50")))
     spawn_rate: int = field(
         default_factory=lambda: int(os.getenv("LOCUST_SPAWN_RATE", "5"))
     )
-    run_time: str = field(
-        default_factory=lambda: os.getenv("LOCUST_RUN_TIME", "5m")
-    )
+    run_time: str = field(default_factory=lambda: os.getenv("LOCUST_RUN_TIME", "5m"))
     min_wait: int = field(
         default_factory=lambda: int(os.getenv("LOCUST_MIN_WAIT", "1"))
     )

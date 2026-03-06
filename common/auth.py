@@ -7,7 +7,6 @@ and session-cookie management for Demoblaze-style authentication flows.
 
 import json
 import logging
-from typing import Optional
 
 from locust import HttpUser
 
@@ -32,8 +31,8 @@ class AuthManager:
         self._user = user
         self._username = username
         self._password = password
-        self.token: Optional[str] = None
-        self.session_cookie: Optional[str] = None
+        self.token: str | None = None
+        self.session_cookie: str | None = None
         self.is_authenticated: bool = False
 
     # ------------------------------------------------------------------
@@ -85,9 +84,7 @@ class AuthManager:
         cookies = self._user.client.cookies.get_dict()
         self.session_cookie = cookies.get("user")
         if not self.session_cookie:
-            logger.warning(
-                "AuthManager: 'user' session cookie not found after login."
-            )
+            logger.warning("AuthManager: 'user' session cookie not found after login.")
 
     # ------------------------------------------------------------------
     # Descriptor protocol helpers

@@ -15,15 +15,13 @@ import logging
 import os
 import random
 import sys
-from typing import Optional
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
-
-from locust import HttpUser, LoadTestShape, between, events, task
 
 from common.auth import AuthManager
 from common.config import auth as _auth_cfg
 from common.config import products, thresholds
+from locust import HttpUser, LoadTestShape, between, events, task
 
 logger = logging.getLogger(__name__)
 
@@ -66,7 +64,7 @@ class SpikeLoadShape(LoadTestShape):
         {"duration": 240, "users": 0, "spawn_rate": 10},
     ]
 
-    def tick(self) -> Optional[tuple[int, float]]:
+    def tick(self) -> tuple[int, float] | None:
         run_time = self.get_current_run_time()
         for stage in self.stages:
             if run_time < stage["duration"]:

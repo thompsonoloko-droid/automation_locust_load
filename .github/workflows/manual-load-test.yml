@@ -1,0 +1,91 @@
+name: Manual Load Test
+
+on:
+  workflow_dispatch:
+    inputs:
+      locustfile:
+        description: "Locust file to run"
+        required: true
+        type: choice
+        options:
+          - tests/locustfile.py
+          - tests/test_api_performance.py
+          - tests/test_spike_load.py
+          - tests/test_endurance.py
+          - tests/test_smoke_load.py
+          - tests/test_checkout_flow.py
+        default: tests/locustfile.py
+      users:
+        description: "Number of virtual users"
+        required: true
+        default: "20"
+      spawn_rate:
+        description: "Users spawned per second"
+        required: true
+        default: "2"
+      run_time:
+        description: "Test duration (e.g. 1m, 5m, 1h)"
+        required: true
+        default: "2m"
+      host:
+        description: "Target host URL"
+        required: false
+        default: "https://demoblaze.com"
+
+env:
+  PYTHON_VERSION: "3.11"
+
+jobs:
+  manual-run:
+    name: Manual Load Test — ${{ github.event.inputs.locustfile }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python ${{ env.PYTHON_VERSION }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install locust requests python-dotenv
+
+      - name: Run load test
+        run: |
+          locust -f ${{ github.event.inputs.locustfile }} \
+            --headless \
+            --users ${{ github.event.inputs.users }} \
+            --spawn-rate ${{ github.event.inputs.spawn_rate }} \
+            --run-time ${{ github.event.inputs.run_time }} \
+            --host ${{ github.event.inputs.host }} \
+            --html reports/manual-report.html \
+            --csv reports/manual
+        env:
+          TEST_USERNAME: ${{ secrets.TEST_USERNAME }}
+          TEST_PASSWORD: ${{ secrets.TEST_PASSWORD }}
+
+      - name: Upload test report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: manual-report-${{ github.run_id }}
+          path: reports/
+          retention-days: 30
+
+      - name: Post summary
+        if: always()
+        run: |
+          echo "## Load Test Summary" >> $GITHUB_STEP_SUMMARY
+          echo "| Parameter | Value |" >> $GITHUB_STEP_SUMMARY
+          echo "|-----------|-------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Locust file | ${{ github.event.inputs.locustfile }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Users | ${{ github.event.inputs.users }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Spawn rate | ${{ github.event.inputs.spawn_rate }}/s |" >> $GITHUB_STEP_SUMMARY
+          echo "| Duration | ${{ github.event.inputs.run_time }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Host | ${{ github.event.inputs.host }} |" >> $GITHUB_STEP_SUMMARY

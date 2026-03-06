@@ -1,0 +1,65 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.backends.legacy:build"
+
+[project]
+name = "automation-locust-load"
+version = "1.0.0"
+description = "Production-ready Locust performance test framework targeting Demoblaze e-commerce"
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+authors = [{ name = "Thompson Oloko" }]
+
+dependencies = [
+    "locust>=2.33.1",
+    "requests>=2.32.5",
+    "python-dotenv>=1.1.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=9.0.2",
+    "pytest-html>=4.1.1",
+    "pytest-cov>=6.0.0",
+    "mypy>=1.15.0",
+    "black>=25.1.0",
+    "ruff>=0.9.9",
+    "isort>=5.13.2",
+    "allure-pytest>=2.14.3",
+]
+
+[tool.black]
+line-length = 88
+target-version = ["py311"]
+
+[tool.ruff]
+line-length = 88
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "N", "UP", "B"]
+ignore = ["E501"]
+
+[tool.isort]
+profile = "black"
+line_length = 88
+
+[tool.mypy]
+python_version = "3.11"
+warn_return_any = true
+warn_unused_configs = true
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-v --tb=short"
+markers = [
+    "smoke: Quick sanity checks",
+    "regression: Full regression suite",
+    "unit: Unit tests for locust modules",
+    "integration: Integration / end-to-end load tests",
+    "spike: Spike load shape tests",
+    "endurance: Long-running soak tests",
+    "api: API endpoint performance tests",
+]

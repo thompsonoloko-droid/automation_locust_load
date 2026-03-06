@@ -1,0 +1,80 @@
+# ==============================
+# Python
+# ==============================
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyo
+*.pyd
+.Python
+
+# ==============================
+# Virtual environments
+# ==============================
+.venv/
+venv/
+env/
+ENV/
+.env
+
+# ==============================
+# Secrets & credentials
+# ==============================
+.env.local
+.env.*.local
+secrets.json
+credentials.json
+
+# ==============================
+# pytest / coverage
+# ==============================
+.pytest_cache/
+htmlcov/
+.coverage
+coverage.xml
+*.cover
+
+# ==============================
+# Locust reports & artifacts
+# ==============================
+reports/*.txt
+reports/*.html
+reports/*.csv
+reports/allure-results/
+locust_stats_*.csv
+locust_failures_*.csv
+locust_exceptions_*.csv
+locust_stats_history_*.csv
+
+# ==============================
+# Editors / IDEs
+# ==============================
+.vscode/settings.json
+.vscode/launch.json
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# ==============================
+# OS artefacts
+# ==============================
+Thumbs.db
+.DS_Store
+Desktop.ini
+
+# ==============================
+# Build / dist
+# ==============================
+dist/
+build/
+*.egg-info/
+
+# ==============================
+# Embedded / vendored libraries
+# ==============================
+# The locust/ directory is the upstream Locust library clone — not part of
+# this project. The package is installed via pip (requirements.txt).
+locust/

@@ -1,0 +1,62 @@
+name: Nightly Endurance Test
+
+on:
+  schedule:
+    # Run every night at 02:00 UTC
+    - cron: "0 2 * * *"
+  workflow_dispatch:
+    inputs:
+      users:
+        description: "Number of virtual users"
+        required: false
+        default: "20"
+      run_time:
+        description: "Test duration (e.g. 10m, 30m, 1h)"
+        required: false
+        default: "10m"
+
+env:
+  PYTHON_VERSION: "3.11"
+
+jobs:
+  endurance:
+    name: Endurance / Soak Test
+    runs-on: ubuntu-latest
+    timeout-minutes: 70
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python ${{ env.PYTHON_VERSION }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install locust requests python-dotenv
+
+      - name: Run endurance test
+        run: |
+          locust -f tests/test_endurance.py \
+            --headless \
+            --users ${{ github.event.inputs.users || '20' }} \
+            --spawn-rate 2 \
+            --run-time ${{ github.event.inputs.run_time || '10m' }} \
+            --host https://demoblaze.com \
+            --html reports/endurance-report.html \
+            --csv reports/endurance
+        env:
+          TEST_USERNAME: ${{ secrets.TEST_USERNAME }}
+          TEST_PASSWORD: ${{ secrets.TEST_PASSWORD }}
+
+      - name: Upload endurance report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: endurance-report-${{ github.run_id }}
+          path: reports/
+          retention-days: 30

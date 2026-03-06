@@ -22,7 +22,7 @@ from locust import HttpUser, LoadTestShape, between, events, task
 
 from common.auth import AuthManager
 from common.config import auth as _auth_cfg
-from common.config import products, thresholds
+from common.config import products, target, thresholds
 
 logger = logging.getLogger(__name__)
 
@@ -112,7 +112,7 @@ class SpikeTestUser(HttpUser):
     def browse_catalogue(self) -> None:
         """POST /entries — catalogue fetch."""
         with self.client.post(
-            "/entries",
+            f"{target.api_host}/entries",
             json={},
             catch_response=True,
             name="Spike: POST /entries",
@@ -127,7 +127,7 @@ class SpikeTestUser(HttpUser):
         """POST /bycat — filter by category."""
         category = random.choice(products.categories)
         with self.client.post(
-            "/bycat",
+            f"{target.api_host}/bycat",
             json={"cat": category},
             catch_response=True,
             name="Spike: POST /bycat",
@@ -157,7 +157,7 @@ class SpikeTestUser(HttpUser):
         pid = random.choice(products.known_product_ids)
         cookie_val = self.auth.session_cookie or ""
         with self.client.post(
-            "/addtocart",
+            f"{target.api_host}/addtocart",
             json={"id": pid, "cookie": cookie_val, "flag": False},
             catch_response=True,
             name="Spike: POST /addtocart",

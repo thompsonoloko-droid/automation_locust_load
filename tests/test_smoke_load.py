@@ -19,7 +19,7 @@ from locust import HttpUser, between, events, task
 
 from common.auth import AuthManager
 from common.config import auth as _auth_cfg
-from common.config import products
+from common.config import products, target
 
 logger = logging.getLogger(__name__)
 
@@ -60,10 +60,14 @@ class SmokeUser(HttpUser):
     def on_start(self) -> None:
         self.auth = AuthManager(
             user=self,
-            username=_auth_cfg.username or "deltest@test.com",
-            password=_auth_cfg.password or "Password123#",
+            username=_auth_cfg.username or "",
+            password=_auth_cfg.password or "",
         )
-        self.auth.login()
+        # Only attempt login when credentials are available; in CI
+        # environments without secrets, skip auth to avoid counting
+        # guaranteed login failures against the SLA threshold.
+        if _auth_cfg.is_configured():
+            self.auth.login()
 
     def on_stop(self) -> None:
         self.auth.logout()
@@ -81,7 +85,7 @@ class SmokeUser(HttpUser):
     def smoke_entries(self) -> None:
         """Verify product catalogue endpoint."""
         with self.client.post(
-            "/entries",
+            f"{target.api_host}/entries",
             json={},
             catch_response=True,
             name="Smoke: POST /entries",
@@ -95,7 +99,7 @@ class SmokeUser(HttpUser):
     def smoke_bycat(self) -> None:
         """Verify category filter endpoint."""
         with self.client.post(
-            "/bycat",
+            f"{target.api_host}/bycat",
             json={"cat": "phone"},
             catch_response=True,
             name="Smoke: POST /bycat",

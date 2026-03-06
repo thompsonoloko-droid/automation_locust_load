@@ -57,10 +57,10 @@ class TestAPIPerformanceUser:
     """Tests for APIPerformanceUser in tests/test_api_performance.py."""
 
     def test_host_is_demoblaze(self) -> None:
-        """APIPerformanceUser host must target demoblaze.com."""
+        """APIPerformanceUser host must target the Demoblaze REST API."""
         from tests.test_api_performance import APIPerformanceUser
 
-        assert APIPerformanceUser.host == "https://demoblaze.com"
+        assert APIPerformanceUser.host == "https://api.demoblaze.com"
 
     def test_entries_task_highest_weight(self) -> None:
         """POST /entries must have the highest API task weight."""

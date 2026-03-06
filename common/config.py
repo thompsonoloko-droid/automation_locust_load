@@ -16,10 +16,20 @@ load_dotenv()
 
 @dataclass(frozen=True)
 class TargetConfig:
-    """Base URL and timeout settings for the system-under-test."""
+    """Base URL and timeout settings for the system-under-test.
+
+    Demoblaze exposes two origins:
+    - ``host``     — HTML SPA served from demoblaze.com (GET pages)
+    - ``api_host`` — REST API served from api.demoblaze.com (POST endpoints)
+    """
 
     host: str = field(
         default_factory=lambda: os.getenv("TARGET_HOST", "https://demoblaze.com")
+    )
+    api_host: str = field(
+        default_factory=lambda: os.getenv(
+            "TARGET_API_HOST", "https://api.demoblaze.com"
+        )
     )
     request_timeout: int = field(
         default_factory=lambda: int(os.getenv("REQUEST_TIMEOUT", "30"))

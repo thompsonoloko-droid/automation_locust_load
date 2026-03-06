@@ -24,7 +24,7 @@ from locust import HttpUser, between, events, task
 
 from common.auth import AuthManager
 from common.config import auth as _auth_cfg
-from common.config import products, thresholds
+from common.config import products, target, thresholds
 
 logging.basicConfig(
     level=logging.INFO,
@@ -104,7 +104,7 @@ class DemoblazeUser(HttpUser):
         """POST /bycat — browse phones / notebooks / monitors."""
         category = random.choice(products.categories)
         with self.client.post(
-            "/bycat",
+            f"{target.api_host}/bycat",
             json={"cat": category},
             catch_response=True,
             name="POST /bycat",
@@ -129,7 +129,7 @@ class DemoblazeUser(HttpUser):
     def get_product_entries(self) -> None:
         """POST /entries — retrieve all product listings."""
         with self.client.post(
-            "/entries",
+            f"{target.api_host}/entries",
             json={},
             catch_response=True,
             name="POST /entries",
@@ -145,7 +145,7 @@ class DemoblazeUser(HttpUser):
         pid = random.choice(products.known_product_ids)
         cookie_val = self.auth.session_cookie or ""
         with self.client.post(
-            "/addtocart",
+            f"{target.api_host}/addtocart",
             json={"id": pid, "cookie": cookie_val, "flag": False},
             catch_response=True,
             name="POST /addtocart",
@@ -160,7 +160,7 @@ class DemoblazeUser(HttpUser):
         """POST /viewcart — retrieve current cart contents."""
         cookie_val = self.auth.session_cookie or ""
         with self.client.post(
-            "/viewcart",
+            f"{target.api_host}/viewcart",
             json={"cookie": cookie_val, "flag": False},
             catch_response=True,
             name="POST /viewcart",
@@ -182,7 +182,7 @@ class DemoblazeUser(HttpUser):
     def place_order(self) -> None:
         """POST /purchase — simulate order submission."""
         with self.client.post(
-            "/purchase",
+            f"{target.api_host}/purchase",
             json={
                 "name": "Load Test User",
                 "country": "UK",

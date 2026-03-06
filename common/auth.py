@@ -10,6 +10,8 @@ import logging
 
 from locust import HttpUser
 
+from common.config import target as _target_cfg
+
 logger = logging.getLogger(__name__)
 
 
@@ -47,9 +49,12 @@ class AuthManager:
             ``True`` when authentication succeeds, ``False`` otherwise.
         """
         payload = {"username": self._username, "password": self._password}
+        # Use the API host (api.demoblaze.com) for the login endpoint,
+        # not the SPA host (demoblaze.com) which does not serve the REST API.
+        login_url = f"{_target_cfg.api_host}/login"
         try:
             with self._user.client.post(
-                "/login", json=payload, catch_response=True, name="/login [auth]"
+                login_url, json=payload, catch_response=True, name="/login [auth]"
             ) as response:
                 if response.status_code == 200 and "Auth_token" in response.text:
                     data: dict = json.loads(response.text)

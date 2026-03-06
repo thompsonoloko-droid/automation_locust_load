@@ -21,7 +21,7 @@ from locust import HttpUser, SequentialTaskSet, between, events, task
 
 from common.auth import AuthManager
 from common.config import auth as _auth_cfg
-from common.config import products, thresholds
+from common.config import products, target, thresholds
 
 logger = logging.getLogger(__name__)
 
@@ -70,7 +70,7 @@ class CheckoutTaskSet(SequentialTaskSet):
     def step_2_browse_catalogue(self) -> None:
         """Step 2: View product catalogue."""
         with self.client.post(
-            "/entries",
+            f"{target.api_host}/entries",
             json={},
             catch_response=True,
             name="Checkout: POST /entries",
@@ -85,7 +85,7 @@ class CheckoutTaskSet(SequentialTaskSet):
         """Step 3: Filter by category."""
         cat = random.choice(products.categories)
         with self.client.post(
-            "/bycat",
+            f"{target.api_host}/bycat",
             json={"cat": cat},
             catch_response=True,
             name="Checkout: POST /bycat",
@@ -113,7 +113,7 @@ class CheckoutTaskSet(SequentialTaskSet):
         """Step 5: Add product to cart."""
         cookie_val = self.auth.session_cookie or ""
         with self.client.post(
-            "/addtocart",
+            f"{target.api_host}/addtocart",
             json={"id": self.selected_product, "cookie": cookie_val, "flag": False},
             catch_response=True,
             name="Checkout: POST /addtocart",
@@ -128,7 +128,7 @@ class CheckoutTaskSet(SequentialTaskSet):
         """Step 6: Open the cart / review page."""
         cookie_val = self.auth.session_cookie or ""
         with self.client.post(
-            "/viewcart",
+            f"{target.api_host}/viewcart",
             json={"cookie": cookie_val, "flag": False},
             catch_response=True,
             name="Checkout: POST /viewcart",
@@ -142,7 +142,7 @@ class CheckoutTaskSet(SequentialTaskSet):
     def step_7_place_order(self) -> None:
         """Step 7: Submit order (critical path, highest SLA weight)."""
         with self.client.post(
-            "/purchase",
+            f"{target.api_host}/purchase",
             json={
                 "name": "Load Test User",
                 "country": "UK",

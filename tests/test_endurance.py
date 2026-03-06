@@ -23,7 +23,7 @@ from locust import HttpUser, LoadTestShape, between, events, task
 
 from common.auth import AuthManager
 from common.config import auth as _auth_cfg
-from common.config import products, thresholds
+from common.config import products, target, thresholds
 
 logger = logging.getLogger(__name__)
 
@@ -135,7 +135,7 @@ class EnduranceUser(HttpUser):
     def catalogue_poll(self) -> None:
         """POST /entries — repeated catalogue poll checks for memory leaks."""
         with self.client.post(
-            "/entries",
+            f"{target.api_host}/entries",
             json={},
             catch_response=True,
             name="Soak: POST /entries",
@@ -150,7 +150,7 @@ class EnduranceUser(HttpUser):
         """POST /bycat — rotate category filter to exercise all code paths."""
         cat = random.choice(products.categories)
         with self.client.post(
-            "/bycat",
+            f"{target.api_host}/bycat",
             json={"cat": cat},
             catch_response=True,
             name="Soak: POST /bycat",
@@ -177,7 +177,7 @@ class EnduranceUser(HttpUser):
         pid = random.choice(products.known_product_ids)
         cookie_val = self.auth.session_cookie or ""
         with self.client.post(
-            "/addtocart",
+            f"{target.api_host}/addtocart",
             json={"id": pid, "cookie": cookie_val, "flag": False},
             catch_response=True,
             name="Soak: POST /addtocart",
@@ -192,7 +192,7 @@ class EnduranceUser(HttpUser):
         """POST /viewcart — cart reads under sustained load."""
         cookie_val = self.auth.session_cookie or ""
         with self.client.post(
-            "/viewcart",
+            f"{target.api_host}/viewcart",
             json={"cookie": cookie_val, "flag": False},
             catch_response=True,
             name="Soak: POST /viewcart",

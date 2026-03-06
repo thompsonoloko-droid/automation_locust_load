@@ -40,7 +40,7 @@ class APIPerformanceUser(HttpUser):
     which is the industry-standard approach for backend SLA validation.
     """
 
-    host = "https://demoblaze.com"
+    host = "https://api.demoblaze.com"
     wait_time = between(0.5, 2)
 
     def on_start(self) -> None:

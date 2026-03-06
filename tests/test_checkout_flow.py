@@ -167,13 +167,13 @@ class CheckoutTaskSet(SequentialTaskSet):
     def step_7_place_order(self) -> None:
         """
         Step 7: Submit order (critical path, highest SLA weight).
-        
+
         Business significance:
         - This is the **revenue-generating endpoint**
         - Every failure = lost transaction / customer churn
         - Must have SLA: <2s p95, <5s p99, <1% failure rate
         - Monitored in production via Datadog/APM
-        
+
         Payload fields:
         - card: Test card 4444333322221111 (Stripe test mode)
         - month/year: 12/2030 (test expiry)
@@ -200,12 +200,12 @@ class CheckoutTaskSet(SequentialTaskSet):
     def step_8_logout(self) -> None:
         """
         Step 8: Reset journey — log out.
-        
+
         Cleanup & restart logic:
         - Clears session token (auth.logout())
         - Selects new random product for next iteration
         - Simulates realistic user behavior: logout → new session next visit
-        
+
         Loop: After step_8, SequentialTaskSet restarts at step_1 (login)
         """
         self.auth.logout()
@@ -227,7 +227,7 @@ class CheckoutTaskSet(SequentialTaskSet):
 class CheckoutUser(HttpUser):
     """
     User that exclusively runs the complete checkout journey in strict sequential order.
-    
+
     Use case: Critical path monitoring for e-commerce platform.
     Each user iteration represents one virtual customer's complete purchase.
     Locust scales this: N concurrent users = N simultaneous purchase journeys.

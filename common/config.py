@@ -43,10 +43,10 @@ class TargetConfig:
 class AuthConfig:
     """
     Credentials loaded from environment variables.
-    
+
     Optional by design: Smoke tests can run with empty credentials (public catalog),
     but checkout/cart/order flows require valid username + password.
-    
+
     Usage:
         config = AuthConfig()
         if config.is_configured():
@@ -55,7 +55,7 @@ class AuthConfig:
         else:
             # Fallback to defaults or skip auth-required tests
             logger.warning("Credentials not configured; skipping authenticated scenarios")
-    
+
     Environment Variables:
         TEST_USERNAME: Username for demoblaze.com (default: "")
         TEST_PASSWORD: Password for demoblaze.com (default: "")
@@ -73,17 +73,17 @@ class AuthConfig:
 class LoadConfig:
     """
     Default load-shape parameters (overridable via Locust CLI flags).
-    
+
     These control the fundamental behavior of Locust:
     - users: Total concurrent virtual users to simulate
     - spawn_rate: Users to spawn per second (ramp-up speed)
     - run_time: Total test duration (e.g., "5m" = 5 minutes)
     - min_wait, max_wait: Random think-time between requests (ms)
-    
+
     CLI Override Example:
         locust -f tests/locustfile.py -u 100 -r 10 --run-time 10m
         (overrides users, spawn_rate, run_time from config)
-    
+
     Environment Variables:
         LOCUST_USERS: Number of concurrent users (default: 50)
         LOCUST_SPAWN_RATE: Users spawned per second (default: 5)
@@ -109,20 +109,20 @@ class LoadConfig:
 class ThresholdConfig:
     """
     SLA / acceptance thresholds for custom assertions and CI/CD gating.
-    
+
     These values gate automated test execution in CI pipelines:
     - If max_failure_rate_pct threshold breached → exit code 1 (hard gate)
     - All metrics logged for reporting / APM integration
-    
+
     SLA Interpretation:
         max_response_time_ms: P95 latency must stay <2s (industry standard: <1s)
         max_failure_rate_pct: Up to 1% failures tolerated (e-commerce: <0.1%)
         min_rps: Minimum throughput — validates system isn't saturated
-    
+
     CI/CD Integration (GitHub Actions):
         Smoke Load: ~10% failure tolerance (optional experiments)
         Production: ~1% failure rate (hard billing SLA)
-    
+
     Environment Variables:
         SLA_MAX_RESPONSE_MS: Max acceptable P95 response time (default: 2000)
         SLA_MAX_FAILURE_RATE: Max failure rate % for gating (default: 1.0)
@@ -144,21 +144,21 @@ class ThresholdConfig:
 class ProductConfig:
     """
     Known product IDs and categories from Demoblaze.
-    
+
     Product Inventory:
         IDs 1–9 are guaranteed available on demoblaze.com
         IDs map to specific phones, notebooks, and monitors
-    
+
     Categories:
         "phone": Mobile devices (IDs 1–5)
         "notebook": Laptops (IDs 6–8)
         "monitor": Displays (ID 9)
-    
+
     Usage in Load Tests:
         - browse_by_category: Randomly select category, fetch products
         - view_product: Access product detail page (idp_={id})
         - add_to_cart: Add random product to cart
-    
+
     Testing Strategy:
         - Always use known_product_ids to avoid 404 errors
         - Random selection prevents caching bias

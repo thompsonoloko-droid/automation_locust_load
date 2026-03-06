@@ -36,7 +36,7 @@ logger = logging.getLogger(__name__)
 class EnduranceLoadShape(LoadTestShape):
     """
     Gradual ramp-up then sustained plateau (default: 30 min total).
-    
+
     Memory leak detection strategy:
     - Warm-up (0–5 min): Allow JVM/Python to stabilize, class loading
     - Sustained (5–25 min): **Primary detection window** — observe metrics
@@ -44,12 +44,12 @@ class EnduranceLoadShape(LoadTestShape):
       - Watch for: Monotonic growth (memory leak signature)
       - Expected: Flat or bounded oscillation
     - Ramp-down (25–30 min): Graceful shutdown, connection cleanup
-    
+
     Metrics collected by Locust:
     - Response time percentiles (p50, p95, p99): Should be stable ±20%
     - Failure rate: Must stay <1% (consistent throughput)
     - Request/sec: Validate sustained throughput (not degrading)
-    
+
     Common leak patterns:
     - Memory RSS growth >200MB over 20min = potential leak
     - Response time drift >50% = connection pool exhaustion
@@ -95,12 +95,12 @@ def on_test_start(environment, **kwargs) -> None:  # type: ignore[type-arg]
 def on_test_stop(environment, **kwargs) -> None:  # type: ignore[type-arg]
     """
     Soak test complete: report aggregate metrics and final SLA gate.
-    
+
     Metrics interpretation:
     - p95, p99: Response time percentiles — should track flatly over 20min
     - failures: Count of HTTP errors — must stay <threshold
     - fail_ratio: (failures / total_requests) * 100 — gate on <1%
-    
+
     Common findings:
     - p99 creep from 100ms → 500ms: Connection pool exhaustion
     - Failure rate climb: Resource leak or cascade failure

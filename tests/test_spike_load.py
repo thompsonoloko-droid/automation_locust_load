@@ -54,7 +54,7 @@ class SpikeLoadShape(LoadTestShape):
     - Spike: Sudden 4x traffic surge (90→100 users in 30s)
     - Recovery: System response to load drop (auto-scaling, recovery)
     - Ramp-down: Clean shutdown
-    
+
     Industry use case: Black Friday, flash sales, viral content.
     Success: Response time degradation <20%, P99 latency <10s, failure rate <1%.
 
@@ -78,7 +78,7 @@ class SpikeLoadShape(LoadTestShape):
     def tick(self) -> tuple[int, float] | None:
         """
         Calculate user count and spawn rate for current elapsed time.
-        
+
         Returns: (user_count, spawn_rate) tuple, or None when all stages complete.
         """
         run_time = self.get_current_run_time()

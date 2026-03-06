@@ -47,11 +47,11 @@ def on_test_start(environment, **kwargs) -> None:  # type: ignore[type-arg]
 def on_test_stop(environment, **kwargs) -> None:  # type: ignore[type-arg]
     """
     SLA gate: exits with code 1 if failure rate exceeds the configured threshold.
-    
+
     This hook allows CI/CD pipelines to gate on performance metrics:
     - If fail_ratio * 100 > max_failure_rate_pct, exit_code = 1 (failure)
     - Otherwise, exit_code = 0 (success)
-    
+
     Max failure rate is loaded from config (default: 1%), can be overridden
     via environment variable SLA_MAX_FAILURE_RATE.
     """

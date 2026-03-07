@@ -70,7 +70,7 @@ class EnduranceLoadShape(LoadTestShape):
     ]
 
     def tick(self) -> tuple[int, float] | None:
-        run_time = self.get_current_run_time()
+        run_time = self.get_run_time()
         for stage in self.stages:
             if run_time < stage["duration"]:
                 return stage["users"], stage["spawn_rate"]

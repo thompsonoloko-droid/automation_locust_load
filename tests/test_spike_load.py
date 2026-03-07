@@ -81,7 +81,7 @@ class SpikeLoadShape(LoadTestShape):
 
         Returns: (user_count, spawn_rate) tuple, or None when all stages complete.
         """
-        run_time = self.get_current_run_time()
+        run_time = self.get_run_time()
         for stage in self.stages:
             if run_time < stage["duration"]:
                 tick_data = stage["users"], stage["spawn_rate"]

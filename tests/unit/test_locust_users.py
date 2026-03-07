@@ -104,7 +104,7 @@ class TestSpikeLoadShape:
 
         shape = SpikeLoadShape()
         last_duration = SpikeLoadShape.stages[-1]["duration"]
-        shape.get_current_run_time = lambda: last_duration + 1  # type: ignore
+        shape.get_run_time = lambda: last_duration + 1  # type: ignore
         assert shape.tick() is None
 
     def test_tick_returns_tuple_within_stages(self) -> None:
@@ -112,7 +112,7 @@ class TestSpikeLoadShape:
         from tests.test_spike_load import SpikeLoadShape
 
         shape = SpikeLoadShape()
-        shape.get_current_run_time = lambda: 1  # type: ignore
+        shape.get_run_time = lambda: 1  # type: ignore
         result = shape.tick()
         assert isinstance(result, tuple)
         assert len(result) == 2

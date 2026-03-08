@@ -168,11 +168,11 @@ class EnduranceUser(HttpUser):
 
     @task(4)
     def catalogue_poll(self) -> None:
-        """POST /entries — repeated catalogue poll checks for memory leaks."""
-        with self.client.post(
+        """GET /entries — repeated catalogue poll checks for memory leaks."""
+        with self.client.get(
             f"{target.api_host}/entries",
             catch_response=True,
-            name="Soak: POST /entries",
+            name="Soak: GET /entries",
         ) as r:
             if r.status_code == 200:
                 r.success()

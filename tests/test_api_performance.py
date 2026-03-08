@@ -95,11 +95,11 @@ class APIPerformanceUser(HttpUser):
 
     @task(5)
     def test_entries_endpoint(self) -> None:
-        """POST /entries — catalogue load, highest frequency endpoint."""
-        with self.client.post(
+        """GET /entries — catalogue load, highest frequency endpoint."""
+        with self.client.get(
             "/entries",
             catch_response=True,
-            name="API: POST /entries",
+            name="API: GET /entries",
         ) as r:
             if r.status_code == 200:
                 r.success()

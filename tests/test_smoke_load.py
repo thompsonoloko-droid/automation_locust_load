@@ -90,10 +90,10 @@ class SmokeUser(HttpUser):
     @task
     def smoke_entries(self) -> None:
         """Verify product catalogue endpoint."""
-        with self.client.post(
+        with self.client.get(
             f"{target.api_host}/entries",
             catch_response=True,
-            name="Smoke: POST /entries",
+            name="Smoke: GET /entries",
         ) as r:
             if r.status_code == 200:
                 r.success()

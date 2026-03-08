@@ -95,10 +95,10 @@ class CheckoutTaskSet(SequentialTaskSet):
     @task
     def step_2_browse_catalogue(self) -> None:
         """Step 2: View product catalogue."""
-        with self.client.post(
+        with self.client.get(
             f"{target.api_host}/entries",
             catch_response=True,
-            name="Checkout: POST /entries",
+            name="Checkout: GET /entries",
         ) as r:
             if r.status_code == 200:
                 r.success()

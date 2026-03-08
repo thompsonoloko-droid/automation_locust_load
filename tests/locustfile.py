@@ -149,11 +149,11 @@ class DemoblazeUser(HttpUser):
 
     @task(3)
     def get_product_entries(self) -> None:
-        """POST /entries — retrieve all product listings."""
-        with self.client.post(
+        """GET /entries — retrieve all product listings."""
+        with self.client.get(
             f"{target.api_host}/entries",
             catch_response=True,
-            name="POST /entries",
+            name="GET /entries",
         ) as r:
             if r.status_code == 200:
                 r.success()

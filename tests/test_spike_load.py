@@ -125,11 +125,11 @@ class SpikeTestUser(HttpUser):
 
     @task(5)
     def browse_catalogue(self) -> None:
-        """POST /entries — catalogue fetch."""
-        with self.client.post(
+        """GET /entries — catalogue fetch."""
+        with self.client.get(
             f"{target.api_host}/entries",
             catch_response=True,
-            name="Spike: POST /entries",
+            name="Spike: GET /entries",
         ) as r:
             if r.status_code == 200:
                 r.success()

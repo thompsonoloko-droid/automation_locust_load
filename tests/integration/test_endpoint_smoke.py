@@ -63,8 +63,8 @@ class TestEndpointAvailability:
         assert response.status_code == 200
 
     def test_entries_endpoint_returns_200(self, http_session: requests.Session) -> None:
-        """POST /entries must return HTTP 200 with product data."""
-        response = http_session.post(BASE_URL + "/entries", json={}, timeout=TIMEOUT)
+        """GET /entries must return HTTP 200 with product data."""
+        response = http_session.get(BASE_URL + "/entries", timeout=TIMEOUT)
         assert response.status_code == 200
 
     def test_bycat_phone_returns_200(self, http_session: requests.Session) -> None:
@@ -116,9 +116,9 @@ class TestAuthEndpoint:
         response = http_session.post(BASE_URL + "/login", json=payload, timeout=TIMEOUT)
         response_ms = response.elapsed.total_seconds() * 1000
         # Use 5× SLA threshold for integration smoke (network variance)
-        assert (
-            response_ms < thresholds.max_response_time_ms * 5
-        ), f"Login took {response_ms:.0f}ms — SLA breach"
+        assert response_ms < thresholds.max_response_time_ms * 5, (
+            f"Login took {response_ms:.0f}ms — SLA breach"
+        )
 
 
 @pytest.mark.integration
@@ -128,14 +128,14 @@ class TestResponsePayloads:
     def test_entries_returns_json_with_items(
         self, http_session: requests.Session
     ) -> None:
-        """POST /entries payload must include an 'Items' or similar key."""
-        response = http_session.post(BASE_URL + "/entries", json={}, timeout=TIMEOUT)
+        """GET /entries response must include an 'Items' or similar key."""
+        response = http_session.get(BASE_URL + "/entries", timeout=TIMEOUT)
         assert response.status_code == 200
         data = response.json()
         # Demoblaze wraps items in 'Items' key
-        assert "Items" in data or isinstance(
-            data, list | dict
-        ), "Entries response must be parseable JSON"
+        assert "Items" in data or isinstance(data, list | dict), (
+            "Entries response must be parseable JSON"
+        )
 
     def test_bycat_returns_json(self, http_session: requests.Session) -> None:
         """POST /bycat must return valid JSON."""

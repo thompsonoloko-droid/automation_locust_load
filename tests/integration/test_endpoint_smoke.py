@@ -116,9 +116,9 @@ class TestAuthEndpoint:
         response = http_session.post(BASE_URL + "/login", json=payload, timeout=TIMEOUT)
         response_ms = response.elapsed.total_seconds() * 1000
         # Use 5× SLA threshold for integration smoke (network variance)
-        assert (
-            response_ms < thresholds.max_response_time_ms * 5
-        ), f"Login took {response_ms:.0f}ms — SLA breach"
+        assert response_ms < thresholds.max_response_time_ms * 5, (
+            f"Login took {response_ms:.0f}ms — SLA breach"
+        )
 
 
 @pytest.mark.integration
@@ -133,9 +133,9 @@ class TestResponsePayloads:
         assert response.status_code == 200
         data = response.json()
         # Demoblaze wraps items in 'Items' key
-        assert "Items" in data or isinstance(
-            data, list | dict
-        ), "Entries response must be parseable JSON"
+        assert "Items" in data or isinstance(data, list | dict), (
+            "Entries response must be parseable JSON"
+        )
 
     def test_bycat_returns_json(self, http_session: requests.Session) -> None:
         """POST /bycat must return valid JSON."""

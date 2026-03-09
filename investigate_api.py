@@ -10,10 +10,8 @@ This script tests the exact endpoints used in load tests to identify:
 Run: python investigate_api.py
 """
 
-import json
 import sys
-import time
-from typing import Any, Dict, Optional
+from typing import Any
 
 import requests
 
@@ -66,7 +64,7 @@ def test_api_health() -> bool:
         return False
 
 
-def test_login() -> Optional[Dict[str, Any]]:
+def test_login() -> dict[str, Any] | None:
     """Test login endpoint with various credential formats."""
     print_header("2. LOGIN ENDPOINT TEST")
 
@@ -123,7 +121,7 @@ def test_login() -> Optional[Dict[str, Any]]:
     return None
 
 
-def test_entries_endpoint(token: Optional[str] = None) -> None:
+def test_entries_endpoint(token: str | None = None) -> None:
     """Test /entries endpoint with different HTTP methods."""
     print_header("3. /ENTRIES ENDPOINT TEST")
 
@@ -156,10 +154,10 @@ def test_entries_endpoint(token: Optional[str] = None) -> None:
                 try:
                     data = response.json()
                     print(f"  Response (first 100 chars): {str(data)[:100]}...")
-                except:
+                except ValueError:
                     print(f"  Response: {response.text[:100]}...")
             elif response.status_code == 405:
-                print_error(f"HTTP 405: Method Not Allowed — try a different method")
+                print_error("HTTP 405: Method Not Allowed — try a different method")
             else:
                 print_warning(f"Unexpected status: HTTP {response.status_code}")
 
@@ -251,7 +249,7 @@ def main() -> None:
         print(f"\n  Username: {login_result['username']}")
         print("\nUpdate .env file with these credentials:")
         print(f"  TEST_USERNAME={login_result['username']}")
-        print(f"  TEST_PASSWORD=<the password you used>")
+        print("  TEST_PASSWORD=<the password you used>")
 
     print("\nFor /entries endpoint:")
     print("  - If GET works: Change all POST /entries calls to GET")

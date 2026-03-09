@@ -1,7 +1,8 @@
 """Test registration on Demoblaze API"""
 
-import requests
 import time
+
+import requests
 
 # Create a unique test account
 timestamp = int(time.time())
@@ -21,7 +22,7 @@ try:
     print(f"Signup response: {resp.json()}")
 
     # Try login
-    print(f"\nAttempting to login...")
+    print("\nAttempting to login...")
     login_resp = requests.post(
         "https://api.demoblaze.com/login",
         json={"username": test_user, "password": test_password},
@@ -33,7 +34,7 @@ try:
 
     if "Auth_token" in body:
         print("\n✓ SUCCESS! Login working!")
-        print(f"\nUpdate your .env file with:")
+        print("\nUpdate your .env file with:")
         print(f"TEST_USERNAME={test_user}")
         print(f"TEST_PASSWORD={test_password}")
     elif "errorMessage" in body:

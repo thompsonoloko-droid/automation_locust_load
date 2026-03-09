@@ -42,7 +42,6 @@ def main():
 
     project_root = Path(__file__).parent
     env_file = project_root / ".env"
-    env_template = project_root / ".env.template"
 
     print_info(f"Project root: {project_root}")
 

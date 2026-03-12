@@ -1,9 +1,9 @@
 name: Nightly Endurance Test
 
 on:
-  schedule:
+  # schedule:
     # Run every night at 02:00 UTC
-    - cron: "0 2 * * *"
+    # - cron: "0 2 * * *"
   workflow_dispatch:
     inputs:
       users:
